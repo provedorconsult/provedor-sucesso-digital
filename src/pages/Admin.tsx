@@ -4,6 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Eye, EyeOff } from "lucide-react";
 
 type ContactSubmission = {
   id: string;
@@ -16,11 +23,26 @@ type ContactSubmission = {
   replied_to: boolean;
 }
 
+const loginSchema = z.object({
+  email: z.string().email({ message: "Digite um email válido." }),
+  password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres." }),
+});
+
 const Admin = () => {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [session, setSession] = useState<any>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
   useEffect(() => {
     // Check if user is logged in
@@ -95,19 +117,31 @@ const Admin = () => {
     }
   };
   
-  const handleLogin = async () => {
-    // For demonstration purposes - in a real app, use a proper login form
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: 'admin@example.com',
-      password: 'password',
-    });
-    
-    if (error) {
+  const handleLogin = async (values: z.infer<typeof loginSchema>) => {
+    setIsLoggingIn(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Login realizado com sucesso",
+        description: "Bem-vindo à área administrativa.",
+      });
+    } catch (error: any) {
+      console.error('Login error:', error);
       toast({
         title: "Erro de login",
-        description: error.message,
+        description: error.message || "Ocorreu um erro durante o login. Verifique suas credenciais.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoggingIn(false);
     }
   };
   
@@ -115,6 +149,10 @@ const Admin = () => {
     await supabase.auth.signOut();
     setSession(null);
     setSubmissions([]);
+    toast({
+      title: "Logout realizado",
+      description: "Você foi desconectado com sucesso.",
+    });
   };
 
   // Not authenticated, show login page
@@ -124,15 +162,75 @@ const Admin = () => {
         <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-8">
           <h1 className="text-2xl font-bold mb-6">Área Administrativa</h1>
           <p className="mb-6 text-gray-600">Faça login para acessar as mensagens de contato.</p>
-          <Button onClick={handleLogin} className="w-full">Login (Demo)</Button>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="seu@email.com" 
+                        type="email"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Senha</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input 
+                          placeholder="•••••••" 
+                          type={showPassword ? "text" : "password"}
+                          {...field}
+                        />
+                      </FormControl>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <Button 
+                type="submit" 
+                className="w-full mt-2"
+                disabled={isLoggingIn}
+              >
+                {isLoggingIn ? "Entrando..." : "Entrar"}
+              </Button>
+            </form>
+          </Form>
+          
           <p className="mt-4 text-sm text-gray-500 text-center">
-            Esta é uma demonstração. Em uma aplicação real, você teria um formulário completo de login.
+            Para teste, use: admin@example.com / password
           </p>
         </div>
       </div>
     );
   }
 
+  // Already authenticated, show admin dashboard
   return (
     <div className="container mx-auto py-16 px-4">
       <div className="flex justify-between items-center mb-8">
