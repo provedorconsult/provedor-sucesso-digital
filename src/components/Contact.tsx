@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,25 +22,43 @@ const Contact = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real application, you would send this data to a server
-    console.log('Form submitted:', formData);
+    setIsSubmitting(true);
     
-    toast({
-      title: "Mensagem enviada!",
-      description: "Entraremos em contato em breve.",
-      duration: 5000,
-    });
-    
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      company: '',
-      message: ''
-    });
+    try {
+      // Save to Supabase
+      const { error } = await supabase
+        .from('contact_submissions')
+        .insert([formData]);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Mensagem enviada!",
+        description: "Entraremos em contato em breve.",
+        duration: 5000,
+      });
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        company: '',
+        message: ''
+      });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: "Erro ao enviar mensagem",
+        description: "Por favor, tente novamente mais tarde.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -63,6 +83,7 @@ const Contact = () => {
                     onChange={handleChange}
                     className="w-full"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div className="space-y-2">
@@ -75,6 +96,7 @@ const Contact = () => {
                     onChange={handleChange}
                     className="w-full"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -89,6 +111,7 @@ const Contact = () => {
                     onChange={handleChange}
                     className="w-full"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div className="space-y-2">
@@ -100,6 +123,7 @@ const Contact = () => {
                     onChange={handleChange}
                     className="w-full"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -114,11 +138,16 @@ const Contact = () => {
                   rows={4}
                   className="w-full"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               
-              <Button type="submit" className="w-full btn-primary">
-                Enviar Mensagem
+              <Button 
+                type="submit" 
+                className="w-full btn-primary"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Enviando...' : 'Enviar Mensagem'}
               </Button>
             </form>
           </div>
