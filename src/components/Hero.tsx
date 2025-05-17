@@ -27,7 +27,7 @@ const Hero = () => {
             <Button 
               onClick={() => document.getElementById('servicos')?.scrollIntoView({behavior: 'smooth'})}
               variant="outline" 
-              className="bg-transparent border-2 border-white text-white hover:bg-white/10"
+              className="bg-white text-brand-darkblue border-2 border-white hover:bg-white/90 hover:text-brand-blue transition-colors font-medium"
               size="lg"
             >
               Conheça Nossos Serviços
