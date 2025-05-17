@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowRight, Check, RefreshCw } from "lucide-react";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -16,14 +18,66 @@ const Contact = () => {
     company: '',
     message: ''
   });
+  const [antiBot, setAntiBot] = useState({
+    number1: Math.floor(Math.random() * 10) + 1,
+    number2: Math.floor(Math.random() * 10) + 1,
+    answer: '',
+    verified: false
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleAntiBotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAntiBot(prev => ({ ...prev, answer: e.target.value }));
+  };
+
+  const verifyAntiBot = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const correctAnswer = antiBot.number1 + antiBot.number2;
+    
+    if (parseInt(antiBot.answer) === correctAnswer) {
+      setAntiBot(prev => ({ ...prev, verified: true }));
+      toast({
+        title: "Verificação bem-sucedida!",
+        description: "Você pode enviar seu formulário agora.",
+        duration: 3000,
+      });
+    } else {
+      toast({
+        title: "Verificação falhou",
+        description: "Por favor, tente novamente com a resposta correta.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      regenerateCaptcha();
+    }
+  };
+
+  const regenerateCaptcha = () => {
+    setAntiBot({
+      number1: Math.floor(Math.random() * 10) + 1,
+      number2: Math.floor(Math.random() * 10) + 1,
+      answer: '',
+      verified: false
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!antiBot.verified) {
+      toast({
+        title: "Verificação necessária",
+        description: "Por favor, complete a verificação anti-bot primeiro.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -47,6 +101,14 @@ const Contact = () => {
         phone: '',
         company: '',
         message: ''
+      });
+      
+      // Reset antiBot
+      setAntiBot({
+        number1: Math.floor(Math.random() * 10) + 1,
+        number2: Math.floor(Math.random() * 10) + 1,
+        answer: '',
+        verified: false
       });
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -142,12 +204,58 @@ const Contact = () => {
                 />
               </div>
               
+              {/* Anti-Bot Verification */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Verificação Anti-Bot</h4>
+                
+                {antiBot.verified ? (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <Check className="h-5 w-5" />
+                    <span>Verificação concluída</span>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      Para confirmar que você não é um robô, por favor resolva esta soma simples:
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{antiBot.number1} + {antiBot.number2} = </span>
+                      <Input 
+                        type="number" 
+                        value={antiBot.answer}
+                        onChange={handleAntiBotChange}
+                        className="w-20"
+                        placeholder="?"
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={verifyAntiBot}
+                      >
+                        Verificar
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={regenerateCaptcha}
+                        title="Gerar novo CAPTCHA"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               <Button 
                 type="submit" 
                 className="w-full btn-primary"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !antiBot.verified}
               >
                 {isSubmitting ? 'Enviando...' : 'Enviar Mensagem'}
+                {!isSubmitting && <ArrowRight className="ml-1 h-4 w-4" />}
               </Button>
             </form>
           </div>
