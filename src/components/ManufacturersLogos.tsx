@@ -3,13 +3,13 @@ import { Button } from "@/components/ui/button";
 
 const manufacturers = [
   { name: "Mikrotik", logo: "https://upload.wikimedia.org/wikipedia/commons/3/37/MikroTik_logo.svg" },
-  { name: "Huawei", logo: "https://upload.wikimedia.org/wikipedia/commons/0/00/Huawei_logo.svg" },
+  { name: "Huawei", logo: "/lovable-uploads/02eb0dc9-3675-47c4-85d5-392cf7b12bba.png" },
   { name: "Nokia", logo: "https://upload.wikimedia.org/wikipedia/commons/0/02/Nokia_wordmark.svg" },
   { name: "Cisco", logo: "https://upload.wikimedia.org/wikipedia/commons/0/08/Cisco_logo_blue_2016.svg" },
   { name: "Intelbras", logo: "https://upload.wikimedia.org/wikipedia/commons/2/26/Intelbras_Logo.svg" },
-  { name: "Ubiquiti", logo: "https://upload.wikimedia.org/wikipedia/commons/6/6f/Ubiquiti_2016.svg" },
-  { name: "FiberHome", logo: "https://upload.wikimedia.org/wikipedia/commons/b/bf/FiberHome_logo.svg" },
-  { name: "ZTE", logo: "https://upload.wikimedia.org/wikipedia/commons/7/73/ZTE_logo.svg" },
+  { name: "Ubiquiti", logo: "/lovable-uploads/fdb66e83-a76c-49f7-94bd-249bf0413eb4.png" },
+  { name: "FiberHome", logo: "/lovable-uploads/cd9ec6e2-2020-4485-93e1-204e83a2952a.png" },
+  { name: "ZTE", logo: "/lovable-uploads/ec1ad039-a4d2-464f-8e41-5e7ebedcc439.png" },
   { name: "Multilaser", logo: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Logo_Multilaser_-_PNG.png" },
   { name: "Juniper", logo: "https://upload.wikimedia.org/wikipedia/commons/3/31/Juniper_Networks_logo.svg" },
 ];
